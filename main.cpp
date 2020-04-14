@@ -24,13 +24,11 @@
 #define FXOS8700Q_M_CTRL_REG2 0x5C
 #define FXOS8700Q_WHOAMI_VAL 0xC7
 
-// I/O pins
 InterruptIn sw2(SW2);
 DigitalOut led1(LED1);
 I2C i2c( PTD9,PTD8);
 Serial pc(USBTX, USBRX);
 
-// global variable
 int m_addr = FXOS8700CQ_SLAVE_ADDR1;
 float xdata[1000];
 float ydata[1000];
@@ -38,11 +36,11 @@ float zdata[1000];
 int logdata[1000];
 
 
-using namespace std;
+//using namespace std;
 void FXOS8700CQ_readRegs(int addr, uint8_t * data, int len);
 void FXOS8700CQ_writeRegs(uint8_t * data, int len);
 void logger(int x);
-void ISR(void);         // the eventqueue ISR
+void ISR(void);
 void ledtoggle(int x);
 
 int main() {
@@ -64,8 +62,7 @@ void FXOS8700CQ_writeRegs(uint8_t * data, int len) {
 }
 
 void logger(int x) {
-    static int i = 0;   // loop index
-    // pc.baud(115200);
+    static int i = 0;
     float t[3];
     uint8_t who_am_i, data[2], res[6];
     int16_t acc16;
@@ -95,13 +92,12 @@ void logger(int x) {
     if (acc16 > UINT14_MAX/2)
         acc16 -= UINT14_MAX;
     t[2] = ((float)acc16) / 4096.0f;
-    // log the data
     
     xdata[i] = t[0];
     ydata[i] = t[1];
     zdata[i] = t[2];
     
-    // if the angle > 45 then log
+    // angle > 45
     if (acos(t[2] / (sqrt(pow(t[0], 2) + pow(t[1], 2) + pow(t[2], 2)))) * 180 / M_PI > 45)
         logdata[i] = 1;
     else
@@ -114,16 +110,17 @@ void ISR(void) {
     Thread thread3;
     EventQueue queue2(32 * EVENTS_EVENT_SIZE);
     EventQueue queue3(32 * EVENTS_EVENT_SIZE);
-    // init thread and queue
+
     thread2.start(callback(&queue2, &EventQueue::dispatch_forever));
     thread3.start(callback(&queue3, &EventQueue::dispatch_forever));
-    // call events
+    
     queue2.call_every(100, logger, 0);
-    queue3.call_every(500, ledtoggle, 0);
-    // wait after 10 seconds
+    queue3.call_every(200, ledtoggle, 0);
+    
     wait(10);
     thread2.terminate();
     thread3.terminate();
+    
     // print out the data
     for (int i = 0; i < 100; i++) {
         pc.printf("%1.3f\r\n", xdata[i]);
