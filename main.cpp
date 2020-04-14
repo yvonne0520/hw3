@@ -35,8 +35,6 @@ float ydata[1000];
 float zdata[1000];
 int logdata[1000];
 
-
-//using namespace std;
 void FXOS8700CQ_readRegs(int addr, uint8_t * data, int len);
 void FXOS8700CQ_writeRegs(uint8_t * data, int len);
 void logger(int x);
@@ -59,6 +57,10 @@ void FXOS8700CQ_readRegs(int addr, uint8_t * data, int len) {
 
 void FXOS8700CQ_writeRegs(uint8_t * data, int len) {
     i2c.write(m_addr, (char *)data, len);
+}
+
+void ledtoggle(int x) {
+    led1 = !led1;
 }
 
 void logger(int x) {
@@ -134,7 +136,4 @@ void ISR(void) {
     for (int i = 0; i < 100; i++) {
         pc.printf("%d\r\n", logdata[i]);
     }
-}
-void ledtoggle(int x) {
-    led1 = !led1;
 }
